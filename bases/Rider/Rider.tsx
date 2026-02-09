@@ -1,9 +1,13 @@
 import { Rider as RiderProps } from "@/dtos/Rider.dto"
 import s from "./Rider.module.scss"
+import { useRiders } from "@/contexts/Riders.context"
+
 export default function Rider(props: RiderProps) {
+	const { pickupByOrderId } = useRiders()
+	
 	return (
 		<div
-			onClick={() => props.pickup()}
+			onClick={() => pickupByOrderId(props.orderWanted)}
 			className={s["pk-rider__container"]}
 		>
 			<div className={s["pk-rider__order"]}>

@@ -11,6 +11,7 @@ import {
 export type OrdersContextProps = {
 	orders: Array<Order>
 	pickup: (order: Order) => void
+	updateOrderState: (orderId: string, newState: Order["state"]) => void
 }
 
 export const OrdersContext = createContext<OrdersContextProps>(
@@ -28,20 +29,51 @@ export function OrdersProvider(props: OrdersProviderProps) {
 	useEffect(() => {
 		const orderOrchestrator = new OrderOrchestrator()
 		const listener = orderOrchestrator.run()
-		listener.on("order", (order) => {
+		
+		const handleOrder = (order: Order) => {
 			setOrders((prev) => [...prev, order])
-		})
+		}
+		
+		listener.on("order", handleOrder)
+		
+		// Cleanup: remover el listener cuando el componente se desmonte
+		return () => {
+			listener.off("order", handleOrder)
+		}
 	}, [])
 
-	const pickup = (order: Order) => {
-		alert(
-			"necesitamos eliminar del kanban a la orden recogida! Rapido! antes que nuestra gente de tienda se confunda!",
+	const updateOrderState = (orderId: string, newState: Order["state"]) => {
+		setOrders((prev) =>
+			prev.map((order) =>
+				order.id === orderId
+					? { ...order, state: newState, updatedAt: new Date().toISOString() }
+					: order,
+			),
 		)
+	}
+
+	const pickup = (order?: Order) => {
+		if (!order) {
+			console.log("Error: No se recibió orden para pickup")
+			return
+		}
+		
+		console.log("Entregando orden:", order)
+		
+		if (order.state === "READY") {
+			updateOrderState(order.id, "DELIVERED")
+			setTimeout(() => {
+				setOrders((prev) => prev.filter((o) => o.id !== order.id))
+			}, 2000)
+		} else {
+			alert(`La orden ${order.id} no está lista aún. Estado actual: ${order.state}`)
+		}
 	}
 
 	const context = {
 		orders,
 		pickup,
+		updateOrderState,
 	}
 
 	return (

@@ -4,12 +4,13 @@ import { useRiders } from "@/contexts/Riders.context"
 
 export default function Riders() {
 	const { riders } = useRiders()
+	
 	return (
 		<section className={s["pk-riders__container"]}>
 			<div className={s["pk-riders"]}>
-				<h3>Repartidores:</h3>
-				{riders.map((rider) => (
-					<Rider {...rider} />
+				<h3>Repartidores: ({riders.length})</h3>
+				{riders.map((rider, index) => (
+					<Rider key={rider.orderWanted || index} {...rider} />
 				))}
 			</div>
 		</section>
