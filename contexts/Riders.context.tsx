@@ -9,6 +9,7 @@ import {
 import { useOrders } from "@/contexts/Orders.context"
 import { getRandomInterval } from "@/helpers/utilities"
 import { Rider } from "@/dtos/Rider.dto"
+import toast from "react-hot-toast"
 
 export type RidersContextProps = {
 	riders: Array<Rider>
@@ -29,18 +30,20 @@ export function RidersProvider(props: RidersProviderProps) {
 	const [assignedOrders, setAssignedOrders] = useState<string[]>([])
 	const ordersContext = useOrders()
 
-	
 	const pickupByOrderId = useCallback((orderId: string) => {
 		const currentOrder = ordersContext.orders.find(o => o.id === orderId)
 		if (currentOrder) {
-			console.log("Pickup - Orden encontrada:", currentOrder.id, "Estado:", currentOrder.state)
 			ordersContext.pickup(currentOrder)
 			
-			
-			alert("El Repartidor ha recogido el pedido, pedido en camino!")
-			setRiders((prev) => prev.filter((rider) => rider.orderWanted !== orderId))
+			// Eliminar el rider después del pickup exitoso
+			if (currentOrder.state === "READY") {
+				toast.success(`🛵 Repartidor recogió la orden ${orderId}`, {
+					duration: 2000,
+				})
+				setRiders((prev) => prev.filter((rider) => rider.orderWanted !== orderId))
+			}
 		} else {
-			alert(`Orden ${orderId} no encontrada`)
+			toast.error(`Orden ${orderId} no encontrada`)
 		}
 	}, [ordersContext.orders, ordersContext.pickup])
 

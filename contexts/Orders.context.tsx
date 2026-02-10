@@ -7,6 +7,7 @@ import {
 	useEffect,
 	useState,
 } from "react"
+import toast from "react-hot-toast"
 
 export type OrdersContextProps = {
 	orders: Array<Order>
@@ -54,19 +55,31 @@ export function OrdersProvider(props: OrdersProviderProps) {
 
 	const pickup = (order?: Order) => {
 		if (!order) {
-			console.log("Error: No se recibió orden para pickup")
+			toast.error("No se recibió orden para pickup")
 			return
 		}
 		
-		console.log("Entregando orden:", order)
-		
 		if (order.state === "READY") {
+			toast.success(`✅ Orden ${order.id} entregada correctamente`, {
+				duration: 2000,
+			})
 			updateOrderState(order.id, "DELIVERED")
 			setTimeout(() => {
 				setOrders((prev) => prev.filter((o) => o.id !== order.id))
 			}, 2000)
 		} else {
-			alert(`La orden ${order.id} no está lista aún. Estado actual: ${order.state}`)
+			const estadoTexto = {
+				PENDING: "Pendiente",
+				IN_PROGRESS: "En preparación",
+				READY: "Listo",
+				DELIVERED: "Entregado",
+			}
+			toast.error(
+				`⚠️ La orden ${order.id} no está lista aún\nEstado actual: ${estadoTexto[order.state]}`,
+				{
+					duration: 4000,
+				},
+			)
 		}
 	}
 
